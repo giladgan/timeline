@@ -2,57 +2,61 @@
 import React, { useState, useEffect } from "react"
 import './App.css';
 import 'antd/dist/antd.css';
-import {  Layout } from 'antd';
-import {Select,Timeline} from '@/components'
-import {getUserList,getEvents,delateEvent} from "@/api/events"
-import {Flipper,Flipped} from "react-flip-toolkit"
+import { Layout } from 'antd';
+import { Select, Timeline } from '@/components'
+import { getUserList, getEvents, delateEvent } from "@/api/events"
+//import {Flipper,Flipped} from "react-flip-toolkit"
 const { Content } = Layout
 
 function App() {
   const [eventsList, setEventsList] = useState([])
   const [usersList, setUsersList] = useState([])
   const [currentUserId, setCurrentUserId] = useState()
-  const getEventByUserId = async (userId:any) => {
-    const events = await getEvents({ user_id: userId })
+  const [currentEventId, setCurrentEventId] = useState(null)
+  const getEventByUserId = async (userId: any) => {
+    const events = await getEvents({ user_id: userId,current_item_id:currentEventId })
     setEventsList(events)
   }
   const onUserChange = (user_id: any) => {
     setCurrentUserId(user_id)
   }
   const onDeleteEvent = (id: any) => {
-    delateEvent({id}).then(((res) => {
+    delateEvent({ id }).then(((res) => {
       console.log(delateEvent)
       getEventByUserId(currentUserId)
     }))
   }
+  const onClickEvent = (id: any) => {
+    setCurrentEventId(id)
+  }
   const getUsers = async () => {
     const users = await getUserList()
-      setUsersList(users)
-      setCurrentUserId(users[0].value)
+    setUsersList(users)
+    setCurrentUserId(users[0].value)
   }
-useEffect(() => {
+  useEffect(() => {
     getUsers()
-}, [])
-useEffect(() => {
-  if (currentUserId) {
-    getEventByUserId(currentUserId)
-  }
-}, [currentUserId])
-// @ts-ignore
-return (
+  }, [])
+  useEffect(() => {
+    if (currentUserId) {
+      getEventByUserId(currentUserId)
+    }
+  }, [currentUserId,currentEventId])
+  // @ts-ignore
+  return (
 
     <Content style={{ maxWidth: '1000px', margin: 'auto', width: '100%' }}>
       User Id
-        <Select items={usersList} defaultValue={currentUserId} onChange={onUserChange} size='large'></Select>
-        <Timeline mode="left">{eventsList.map(({ id, timestamp }) => (
-          <Timeline.Item  key={id} label={timestamp}>{id}vb<button onClick={()=>{onDeleteEvent(id)}}>del</button></Timeline.Item>
-        ))
-        }
-        </Timeline>
-      
+      <Select items={usersList} defaultValue={currentUserId} onChange={onUserChange} size='large'></Select>
+      <Timeline mode="left">{eventsList.map(({ id, timestamp }) => (
+        <Timeline.Item key={id} label={timestamp}><div style={id===currentEventId?{backgroundColor:'red'}:{}} onClick={() => { onClickEvent(id) }}>{id}<button onClick={() => { onDeleteEvent(id) }}>del</button></div></Timeline.Item>
+      ))
+      }
+      </Timeline>
+
     </Content>
 
-);
+  );
 }
 
 export default App;
